@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 빵을 먹은 녀석은 누구냐!</title>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --panel-color: #ffffff;
+            --accent-color: #1e3a8a;
+            --text-color: #1e293b;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            color: #1e3a8a;
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        #game-container {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            grid-template-rows: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            height: calc(100% - 60px);
+        }
+
+        /* 왼쪽 수첩 레이아웃 */
+        #left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+
+        #status-panel {
+            background: var(--panel-color);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;
+            border-top: 5px solid var(--accent-color);
+        }
+
+        #clue-notebook {
+            background: #fffdeb;
+            border-left: 5px solid #eab308;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        #clue-notebook h3 {
+            margin: 0 0 15px 0;
+            color: #a16207;
+            border-bottom: 2px dashed #eab308;
+            padding-bottom: 5px;
+            font-size: 16px;
+        }
+
+        #clue-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #clue-list li {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 6px;
+            border: 1px solid #fef08a;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #451a03;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        /* 오른쪽 게임 스크린 레이아웃 */
+        #main-panel {
+            background: var(--panel-color);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border-top: 5px solid #cbd5e1;
+            overflow-y: auto;
+        }
+
+        /* 챕터별 테마 배경색 */
+        .theme-ch1 { background-color: #f0fdf4 !important; border-top-color: #22c55e !important; }
+        .theme-ch2 { background-color: #eff6ff !important; border-top-color: #3b82f6 !important; }
+        .theme-ch3 { background-color: #fdf2f8 !important; border-top-color: #ec4899 !important; }
+        .theme-ch4 { background-color: #faf5ff !important; border-top-color: #a855f7 !important; }
+        .theme-ch5 { background-color: #fff9db !important; border-top-color: #eab308 !important; }
+        .theme-final { background-color: #fff5f5 !important; border-top-color: #ef4444 !important; }
+
+        #scenario-text {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        #quiz-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 14px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 14px;
+            transition: all 0.2s;
+            line-height: 1.4;
+            color: #334155;
+        }
+
+        .option-btn:hover {
+            background: #f8fafc;
+            border-color: #64748b;
+            transform: translateX(5px);
+        }
+
+        /* 최종 표(Table) 레이아웃 스타일 */
+        .suspect-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            font-size: 13px;
+        }
+
+        .suspect-table th {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+            border: 1px solid #1e40af;
+        }
+
+        .suspect-table td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .suspect-table tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .select-suspect-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .select-suspect-btn:hover {
+            background: #dc2626;
+        }
+
+        #nav-btn {
+            margin-top: 15px;
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            align-self: flex-end;
+            display: none;
+        }
+
+        #nav-btn:hover {
+            background: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍞 내 빵을 먹은 녀석은 누구냐!</h1>
+
+    <div id="game-container">
+        <div id="left-panel">
+            <div id="status-panel">
+                <span id="chapter-title">Chapter 1</span>
+            </div>
+            <div id="clue-notebook">
+                <h3>📋 현재 수집된 명제 단서</h3>
+                <ul id="clue-list">
+                    <li>아직 발견된 단서가 없습니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="main-panel" class="theme-ch1">
+            <div id="scenario-text">시나리오 로딩 중...</div>
+            
+            <div id="quiz-section">
+                <div class="options-container" id="options"></div>
+            </div>
+            
+            <button id="nav-btn">다음 장으로 이동</button>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            1: {
+                title: "Chapter 1",
+                theme: "theme-ch1",
+                story: "<strong>[상황: 냉장고 앞 대치]</strong> 동아리방 냉장고에 넣어둔 내 크림빵이 사라졌다! 주변을 서성이던 세 명을 심문한다. 이 중 <strong>단 한 명만 진짜 명제(참과 거짓을 명확히 가릴 수 있는 문장)</strong>를 말하고 있다. 누구의 단서를 신뢰하여 기록하겠는가?",
+                options: [
+                    { text: "A의 진술을 적는다. (A: '크림빵은 세상에서 제일 맛있는 음식이야.')", isCorrect: false, clue: "범인은 안경을 씀" },
+                    { text: "B의 진술을 적는다. (B: '너 지금 나 의심하냐? 당장 그 말 취소해.')", isCorrect: false, clue: "범인은 안경을 씀" },
+                    { text: "C의 진술을 적는다. (C: '2 더하기 3은 6이야.')", isCorrect: true, clue: "범인은 안경을 안 씀" }
+                ]
+            },
+            2: {
+                title: "Chapter 2",
+                theme: "theme-ch2",
+                story: "<strong>[상황: 대강당에서 발견한 쪽지]</strong> 요구르트마저 사라진 대강당 바닥에서 단서 쪽지를 주웠다. 적힌 원본 명제는 <em>'빵을 훔친 자는 민트초코를 좋아한다'</em> 이다. 이 문장과 <strong>논리적으로 100% 동일한 결론(대우 명제)</strong>을 주장하는 자의 단서를 기록하자.",
+                options: [
+                    { text: "D의 메모를 채택한다. (D: '민트초코를 좋아하면 빵을 훔친 자다.')", isCorrect: false, clue: "범인은 민초를 싫어함" },
+                    { text: "E의 메모를 채택한다. (E: '빵을 훔치지 않은 자는 민트초코를 싫어한다.')", isCorrect: false, clue: "범인은 민초를 싫어함" },
+                    { text: "F의 메모를 채택한다. (F: '민트초코를 싫어하면 빵을 훔친 자가 아니다.')", isCorrect: true, clue: "범인은 민초를 좋아함" }
+                ]
+            },
+            3: {
+                title: "Chapter 3",
+                theme: "theme-ch3",
+                story: "<strong>[상황: 동아리방 쓰레기통 옆]</strong> 찢어진 공책 조각 두 개를 찾았다. [쪽지1: 빵 도둑은 대식가이다], [쪽지2: 대식가는 탄산을 좋아한다] 이 두 명제가 모두 참일 때, <strong>삼단논법에 의해 반드시 유도되는 연결 결론</strong>을 바르게 도출한 대답을 선택해 기록하자.",
+                options: [
+                    { text: "G의 해석: '대식가라면 무조건 빵 도둑이겠네!'", isCorrect: false, clue: "범인은 탄산을 싫어함" },
+                    { text: "H의 해석: '탄산을 좋아하면 빵 도둑이라는 소리구나.'", isCorrect: false, clue: "범인은 탄산을 싫어함" },
+                    { text: "I의 해석: '빵 도둑은 결국 탄산을 좋아한다는 결론이 나오네!'", isCorrect: true, clue: "범인은 탄산을 좋아함" }
+                ]
+            },
+            4: {
+                title: "Chapter 4",
+                theme: "theme-ch4",
+                story: "<strong>[상황: 과방에서 들려오는 소문]</strong> 의심스러운 한 녀석이 <em>'나는 동아리 회장이거나 혹은 휴학생이다(또는)'</em>라고 교묘하게 소문을 퍼뜨린 걸 알아냈다. 이 거짓 주장을 <strong>완벽하게 반박하는 부정 명제(드모르간의 법칙)</strong>를 골라 수첩을 채우자.",
+                options: [
+                    { text: "J의 논리를 기록: '너는 회장이 아니거나 또는 휴학생이 아니야!'", isCorrect: false, clue: "범인은 회장 혹은 휴학생" },
+                    { text: "K의 논리를 기록: '너는 회장도 아니고 동시에 휴학생도 아니야!'", isCorrect: true, clue: "범인은 회장X, 휴학생X" },
+                    { text: "L의 논리를 기록: '너는 회장이면 휴학생인 상태야!'", isCorrect: false, clue: "범인은 회장 혹은 휴학생" }
+                ]
+            },
+            5: {
+                title: "Chapter 5",
+                theme: "theme-ch5",
+                // 직관적인 "포함 관계" 문장으로 전면 수정하여 가독성을 높였습니다.
+                story: "<strong>[상황: 캐비닛 자물쇠의 암호]</strong> 탕비실 옆 캐비닛에 암호문이 적혀 있다. <br><em>'범인의 학번 조건은 <strong>24학번을 포함하는 더 넓은 범위</strong>에 속하지만, <strong>고학번(23학번) 선배들의 범위는 결코 포함하지 않는다.</strong>'</em> <br>이 논리적 포함 관계를 완벽히 만족하는 학번 단서 버튼을 누르자.",
+                options: [
+                    { text: "M 버튼 입력: '범인은 오직 24학번에만 해당된다.'", isCorrect: false, clue: "범인은 23학번 혹은 26학번" },
+                    { text: "N 버튼 입력: '범인은 24학번이거나 혹은 25학번(새내기 라인) 중 하나다.'", isCorrect: true, clue: "범인은 24학번이다" },
+                    { text: "O 버튼 입력: '범인은 23학번이거나 혹은 24학번 중 하나다.'", isCorrect: false, clue: "범인은 23학번 혹은 26학번" }
+                ]
+            }
+        };
+
+        // 정우를 27학번으로 바꾸어 민우(24학번)와 겹치던 문제를 깔끔하게 정리했습니다.
+        const suspects = [
+            { name: "1. 수현", glass: "미착용 (X)", mint: "좋아함", soda: "싫어함", status: "동아리 회장", classOf: "23학번" },
+            { name: "2. 영희", glass: "착용 (O)", mint: "좋아함", soda: "좋아함", status: "휴학생", classOf: "26학번" },
+            { name: "3. 지훈", glass: "미착용 (X)", mint: "싫어함", soda: "좋아함", status: "재학생", classOf: "24학번" },
+            { name: "4. 정우", glass: "미착용 (X)", mint: "좋아함", soda: "좋아함", status: "재학생", classOf: "27학번" },
+            { name: "5. 민우", glass: "미착용 (X)", mint: "좋아함", soda: "좋아함", status: "재학생", classOf: "24학번" }
+        ];
+
+        let currentChapter = 1;
+        let collectedClues = [];
+        let userChoices = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById("nav-btn").addEventListener("click", nextChapter);
+            clearClueNotebook();
+            loadChapter(currentChapter);
+        });
+
+        function loadChapter(ch) {
+            if (ch <= 5) {
+                const data = gameData[ch];
+                document.getElementById("chapter-title").innerText = `Chapter ${ch}`;
+                document.getElementById("main-panel").className = data.theme;
+                document.getElementById("scenario-text").innerHTML = data.story;
+                document.getElementById("nav-btn").style.display = "none";
+
+                const optionsContainer = document.getElementById("options");
+                optionsContainer.innerHTML = "";
+
+                data.options.forEach((opt) => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    btn.innerHTML = opt.text;
+                    btn.onclick = () => selectOption(opt);
+                    optionsContainer.appendChild(btn);
+                });
+            } else {
+                loadFinalChapter();
+            }
+        }
+
+        function selectOption(opt) {
+            document.getElementById("scenario-text").innerHTML = "진술을 수첩에 받아 적었습니다. 다음 장으로 넘어가 탐색을 계속하세요.";
+            
+            collectedClues[currentChapter - 1] = opt.clue;
+            userChoices[currentChapter - 1] = opt.isCorrect;
+            updateClueNotebook();
+
+            const navBtn = document.getElementById("nav-btn");
+            if (currentChapter === 5) {
+                navBtn.innerText = "최종 검거 테이블 열기";
+            } else {
+                navBtn.innerText = "다음 장으로 이동";
+            }
+            navBtn.style.display = "block";
+            document.getElementById("options").innerHTML = ""; 
+        }
+
+        function clearClueNotebook() {
+            document.getElementById("clue-list").innerHTML = "<li>아직 발견된 단서가 없습니다.</li>";
+        }
+
+        function updateClueNotebook() {
+            const listContainer = document.getElementById("clue-list");
+            listContainer.innerHTML = "";
+            
+            collectedClues.forEach((clue, idx) => {
+                if (clue) {
+                    const li = document.createElement("li");
+                    li.innerHTML = `<strong>Ch ${idx + 1} 수집 조각:</strong><br>${clue}`;
+                    listContainer.appendChild(li);
+                }
+            });
+            
+            if (collectedClues.length === 0) {
+                clearClueNotebook();
+            }
+        }
+
+        function nextChapter() {
+            currentChapter++;
+            loadChapter(currentChapter);
+        }
+
+        function loadFinalChapter() {
+            document.getElementById("chapter-title").innerText = "Final: 범인 확정";
+            document.getElementById("main-panel").className = "theme-final";
+
+            let finalStory = "<strong>[최종 단계: 명제 단서 대조 법정]</strong><br>좌측 수첩에 기록된 5개의 문장을 논리적으로 해석하여, 아래 용의자 테이블 항목 중 **모든 조건을 완벽하게 충족하는 단 한 명**을 지목하세요.";
+            document.getElementById("scenario-text").innerHTML = finalStory;
+            document.getElementById("nav-btn").style.display = "none";
+
+            const optionsContainer = document.getElementById("options");
+            
+            let tableHtml = `
+                <table class="suspect-table">
+                    <thead>
+                        <tr>
+                            <th>용의자</th>
+                            <th>안경 착용</th>
+                            <th>민트초코</th>
+                            <th>탄산음료</th>
+                            <th>직책/상태</th>
+                            <th>학번</th>
+                            <th>지목</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            suspects.forEach((sus) => {
+                tableHtml += `
+                    <tr>
+                        <td><strong>${sus.name}</strong></td>
+                        <td>${sus.glass}</td>
+                        <td>${sus.mint}</td>
+                        <td>${sus.soda}</td>
+                        <td>${sus.status}</td>
+                        <td>${sus.classOf}</td>
+                        <td><button class="select-suspect-btn" onclick="verdict('${sus.name.replace(/'/g, "\\'")}')">범인선택</button></td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table>`;
+            optionsContainer.innerHTML = tableHtml;
+        }
+
+        function verdict(name) {
+            const isAllCorrect = userChoices.every(choice => choice === true);
+
+            if (name.includes("민우") && isAllCorrect) {
+                document.getElementById("scenario-text").innerHTML = `
+                    <h2 style='color: #16a34a; margin-top:0;'>🎉 완벽한 검거 성공! 진짜 범인은 민우였습니다!</h2>
+                    <p><strong>민우:</strong> "으윽... 안경 미착용, 민초 선호, 삼단논법 결과(탄산 선호), 일반 재학생 조건에 마지막 학번 스나이퍼 조건까지 엮이니 완벽하게 나만 남는구나... 항복이다!"</p>
+                    <div style='background: #fff; padding: 15px; border-radius: 6px; border-left: 5px solid #16a34a; font-size:13px; line-height:1.5; color: #334155;'>
+                        <strong>[최종 소거법 증명 과정]</strong><br>
+                        1. <strong>Ch 1 (명제의 정의):</strong> 틀린 계산도 명제이므로 C가 참말쟁이. '안경을 썼다'의 부정인 <strong>안경 안 씀</strong> 도출.<br>
+                        2. <strong>Ch 2 (대우 명제):</strong> '빵 도둑 → 민초 선호'의 대우는 '민초 싫어함 → 도둑 아님'이므로 F가 정답. 범인은 <strong>민초를 좋아함</strong>.<br>
+                        3. <strong>Ch 3 (삼단논법):</strong> (도둑 → 대식가) + (대식가 → 탄산) = (도둑 → 탄산)이므로 I가 정답. 범인은 <strong>탄산을 좋아함</strong>.<br>
+                        4. <strong>Ch 4 (드모르간 법칙):</strong> '회장 또는 휴학생'의 부정은 '회장도 아니고 그리고 휴학생도 아님'이므로 K가 정답. 범인은 <strong>회장X, 휴학생X(일반 재학생)</strong>.<br>
+                        5. <strong>Ch 5 (조건의 포함관계):</strong> 24학번을 포함하되 고학번(23학번)은 배제하는 범위는 '24학번 혹은 25학번'이므로 N이 정답. 범인은 <strong>24학번</strong>.<br><br>
+                        위의 모든 조건을 완벽히 만족하는 인물은 오직 <strong>5번 민우</strong>뿐입니다!
+                    </div>
+                `;
+            } else {
+                let failMessage = `<h2 style='color: #dc2626; margin-top:0;'>☠️ 추리 실패 (모순 발생)</h2>`;
+                if (!isAllCorrect) {
+                    failMessage += `<p><strong>원인 판명:</strong> 중간 챕터 진행 도중 거짓말쟁이의 논리 함정에 빠져 <strong>'잘못된 단서'</strong>를 수집했습니다. 가짜 조건이 하나라도 섞이면 조건 매칭이 어긋나 추리에 실패하게 됩니다.</p>`;
+                } else {
+                    failMessage += `<p><strong>원인 판명:</strong> 5개의 올바른 명제 단서는 수첩에 다 모았으나, 최종 표(Table) 안의 인물들과 대조하는 과정에서 소거법 계산 실수가 있었습니다. 모든 조건의 교집합을 다시 천천히 찾아보세요.</p>`;
+                }
+                failMessage += `<br><button onclick='restartGame()' style='padding: 10px 18px; cursor: pointer; background: #1e293b; color: white; border: none; border-radius: 6px; font-weight:bold;'>첫 번째 장으로 돌아가 논리 재검증</button>`;
+                document.getElementById("scenario-text").innerHTML = failMessage;
+            }
+            document.getElementById("options").innerHTML = "";
+        }
+
+        function restartGame() {
+            currentChapter = 1;
+            collectedClues = [];
+            userChoices = [];
+            clearClueNotebook();
+            loadChapter(currentChapter);
+        }
+    </script>
+</body>
+</html>
